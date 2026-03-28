@@ -55,7 +55,10 @@ impl OnnxModel {
             builder =
                 builder.with_execution_providers([CPUExecutionProvider::default().build()])?;
         }
-        let session = builder.commit_from_file(path)?;
+        let model_bytes = std::fs::read(path).map_err(|e| {
+            SileroError::Message(format!("Failed to read model file {}: {e}", path.display()))
+        })?;
+        let session = builder.commit_from_memory(&model_bytes)?;
 
         let sample_rates = if path
             .file_name()
